@@ -10,6 +10,10 @@ import { Share } from '@capacitor/share'
 export interface ExportColumn {
   key: string
   header: string
+  /** Excel column width (characters). */
+  width?: number
+  /** Excel number format, e.g. `dd/mm/yyyy hh:mm:ss`. */
+  numFmt?: string
 }
 
 async function saveNative(filename: string, data: string, encoding: Encoding = Encoding.UTF8) {
@@ -57,8 +61,22 @@ export async function exportXlsx(
 ) {
   const wb = new ExcelJS.Workbook()
   const ws = wb.addWorksheet('Data')
-  ws.columns = columns.map((c) => ({ header: c.header, key: c.key, width: 22 }))
+  ws.columns = columns.map((c) => ({
+    header: c.header,
+    key: c.key,
+    width: c.width ?? 22,
+  }))
   ws.addRows(rows)
+
+  const headerRow = ws.getRow(1)
+  headerRow.font = { bold: true }
+  headerRow.alignment = { vertical: 'middle' }
+
+  columns.forEach((c, index) => {
+    if (!c.numFmt) return
+    ws.getColumn(index + 1).numFmt = c.numFmt
+  })
+
   const buf = await wb.xlsx.writeBuffer()
   if (Capacitor.isNativePlatform()) {
     const bytes = new Uint8Array(buf as ArrayBuffer)

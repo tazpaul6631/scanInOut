@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onActivated, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
 import Button from '@/components/ui/AppButton.vue'
@@ -17,12 +17,15 @@ const toast = useToast()
 const logs = ref<ScanLog[]>([])
 const exporting = ref(false)
 
-const columns = computed(() => [
-  { key: 'direction', header: t('scan.direction') },
-  { key: 'value', header: t('scan.value') },
-  { key: 'kind', header: t('scan.kind') },
-  { key: 'format', header: t('scan.format') },
-  { key: 'createdAt', header: t('scan.time') },
+const exportColumns = computed(() => [
+  { key: 'barcode', header: 'Barcode', width: 28 },
+  { key: 'type', header: 'Type', width: 12 },
+  {
+    key: 'datenow',
+    header: 'DateNow',
+    width: 22,
+    numFmt: 'dd/mm/yyyy hh:mm:ss',
+  },
 ])
 
 async function reload() {
@@ -33,13 +36,15 @@ onMounted(() => {
   void reload()
 })
 
-function exportRows() {
+onActivated(() => {
+  void reload()
+})
+
+function exportRows(asExcelDate: boolean) {
   return logs.value.map((row) => ({
-    direction: row.direction,
-    value: row.value,
-    kind: row.kind,
-    format: row.format ?? '',
-    createdAt: formatDateTime(row.createdAt),
+    barcode: row.value,
+    type: row.direction === 'out' ? t('scan.directionOut') : t('scan.directionIn'),
+    datenow: asExcelDate ? new Date(row.createdAt) : formatDateTime(row.createdAt),
   }))
 }
 
@@ -52,9 +57,8 @@ async function doExport(kind: 'csv' | 'xlsx') {
   try {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
     const filename = kind === 'csv' ? `scan-logs-${stamp}.csv` : `scan-logs-${stamp}.xlsx`
-    const rows = exportRows()
-    if (kind === 'csv') await exportCsv(filename, columns.value, rows)
-    else await exportXlsx(filename, columns.value, rows)
+    if (kind === 'csv') await exportCsv(filename, exportColumns.value, exportRows(false))
+    else await exportXlsx(filename, exportColumns.value, exportRows(true))
     toast.add({
       severity: 'success',
       summary: t('sync.exported', { file: filename }),
@@ -85,7 +89,8 @@ async function doExport(kind: 'csv' | 'xlsx') {
       <div class="flex flex-wrap gap-2">
         <Button icon="pi pi-refresh" :aria-label="t('common.search')" :disabled="exporting" @click="reload" />
         <Button :label="t('sync.csv')" icon="pi pi-file" :loading="exporting" @click="doExport('csv')" />
-        <Button :label="t('sync.excel')" icon="pi pi-file-excel" severity="secondary" :loading="exporting" @click="doExport('xlsx')" />
+        <Button :label="t('sync.excel')" icon="pi pi-file-excel" severity="secondary" :loading="exporting"
+          @click="doExport('xlsx')" />
       </div>
     </div>
 
@@ -97,10 +102,8 @@ async function doExport(kind: 'csv' | 'xlsx') {
         current-page-report-template="{first}-{last} / {totalRecords}">
         <Column field="direction" :header="t('scan.direction')">
           <template #body="{ data }">
-            <Tag
-              :value="data.direction === 'out' ? t('scan.directionOut') : t('scan.directionIn')"
-              :severity="data.direction === 'out' ? 'warn' : 'success'"
-            />
+            <Tag :value="data.direction === 'out' ? t('scan.directionOut') : t('scan.directionIn')"
+              :severity="data.direction === 'out' ? 'warn' : 'success'" />
           </template>
         </Column>
         <Column field="value" :header="t('scan.value')" />

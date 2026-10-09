@@ -52,24 +52,16 @@ async function saveManual() {
   <div class="flex flex-col gap-3 p-1">
     <div>
       <h2 class="m-0 mb-1 text-xl">{{ t('nav.mobileScan') }}</h2>
-      <p class="m-0 text-sm text-muted">{{ t('scan.wedgeHint') }}</p>
+      <!-- <p class="m-0 text-sm text-muted">{{ t('scan.wedgeHint') }}</p> -->
     </div>
 
     <div class="rounded-2xl border border-line bg-white p-3 shadow-panel">
       <div class="mb-3 flex flex-wrap items-center gap-2">
         <span class="text-sm font-semibold text-ink">{{ t('scan.direction') }}</span>
-        <Button
-          :label="t('scan.directionIn')"
-          :severity="direction === 'in' ? 'success' : 'secondary'"
-          :outlined="direction !== 'in'"
-          @click="setDirection('in')"
-        />
-        <Button
-          :label="t('scan.directionOut')"
-          :severity="direction === 'out' ? 'warn' : 'secondary'"
-          :outlined="direction !== 'out'"
-          @click="setDirection('out')"
-        />
+        <Button :label="t('scan.directionIn')" :severity="direction === 'in' ? 'success' : 'secondary'"
+          :outlined="direction !== 'in'" @click="setDirection('in')" />
+        <Button :label="t('scan.directionOut')" :severity="direction === 'out' ? 'warn' : 'secondary'"
+          :outlined="direction !== 'out'" @click="setDirection('out')" />
       </div>
 
       <div class="flex flex-wrap gap-2">
@@ -83,10 +75,8 @@ async function saveManual() {
       <div v-if="last" class="mt-3 rounded-2xl border border-line bg-[#f4faf7] p-2.5">
         <strong>{{ t('scan.result') }}:</strong> {{ last.value }}
         <div class="mt-1 flex flex-wrap items-center gap-2">
-          <Tag
-            :value="last.direction === 'out' ? t('scan.directionOut') : t('scan.directionIn')"
-            :severity="last.direction === 'out' ? 'warn' : 'success'"
-          />
+          <Tag :value="last.direction === 'out' ? t('scan.directionOut') : t('scan.directionIn')"
+            :severity="last.direction === 'out' ? 'warn' : 'success'" />
           <span class="text-sm text-muted">{{ last.kind }} · {{ last.format }}</span>
         </div>
       </div>
