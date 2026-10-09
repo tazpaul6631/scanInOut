@@ -182,6 +182,10 @@ const title = computed(() =>
               </RouterLink>
             </div>
           </nav>
+          <div class="sidebar-brand-foot">
+            <img class="sidebar-brand-foot-logo" src="/logo-company.png" :alt="t('app.name')" />
+            <p class="sidebar-brand-foot-copy">{{ t('footer.copyright') }}</p>
+          </div>
         </aside>
         <div class="main">
           <header class="topbar">
@@ -193,7 +197,7 @@ const title = computed(() =>
               <Tag v-if="fromApiRunning" class="sync-from-api-badge max-w-[min(16rem,42vw)] overflow-hidden"
                 severity="info" :value="t('dashboard.syncFromApiRunning', { batch: fromApiBatch, n: fromApiTotal })" />
               <LocaleSelect ref="localeSelect" :compact="shell === 'mobile'" />
-              <UserMenu ref="userMenu" :compact="shell === 'mobile'" />
+              <!-- <UserMenu ref="userMenu" :compact="shell === 'mobile'" /> -->
             </div>
           </header>
           <section class="content">

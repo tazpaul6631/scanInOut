@@ -77,6 +77,14 @@ export async function exportXlsx(
     ws.getColumn(index + 1).numFmt = c.numFmt
   })
 
+  // Enable Excel AutoFilter on the full data range (header + rows)
+  const lastCol = columns.length
+  const lastRow = Math.max(1, rows.length + 1)
+  ws.autoFilter = {
+    from: { row: 1, column: 1 },
+    to: { row: lastRow, column: lastCol },
+  }
+
   const buf = await wb.xlsx.writeBuffer()
   if (Capacitor.isNativePlatform()) {
     const bytes = new Uint8Array(buf as ArrayBuffer)

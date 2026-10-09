@@ -62,7 +62,7 @@ body,
 html.is-native {
   --safe-top: max(env(safe-area-inset-top, 0px), 24px);
   --safe-right: max(env(safe-area-inset-right, 0px), 0px);
-  --safe-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), 2px);
   --safe-left: max(env(safe-area-inset-left, 0px), 0px);
 }
 
@@ -164,6 +164,33 @@ body {
   gap: 4px;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+}
+
+.sidebar-brand-foot {
+  margin-top: auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding-top: 12px;
+  padding-bottom: 33px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.sidebar-brand-foot-logo {
+  height: 28px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.sidebar-brand-foot-copy {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  opacity: 0.72;
+  color: inherit;
 }
 
 .sidebar-nav::-webkit-scrollbar {
@@ -540,6 +567,20 @@ body {
   text-align: center;
 }
 
+.shell.collapsed:not(.sidebar-hover) .sidebar-brand-foot-copy {
+  display: none;
+}
+
+.shell.collapsed:not(.sidebar-hover) .sidebar-brand-foot {
+  align-items: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.shell.collapsed:not(.sidebar-hover) .sidebar-brand-foot-logo {
+  height: 22px;
+}
+
 .shell.collapsed:not(.sidebar-hover) .brand>div {
   display: none;
 }
@@ -694,7 +735,7 @@ body {
   display: flex;
   position: fixed;
   inset: 0 auto 0 0;
-  width: min(230px, 86vw);
+  width: min(180px, 80vw);
   z-index: 40;
 }
 
@@ -708,7 +749,7 @@ body {
 }
 
 .shell.drawer .content {
-  padding: 14px calc(14px + var(--safe-right)) 14px calc(14px + var(--safe-left));
+  padding: 10px calc(10px + var(--safe-right)) 10px calc(10px + var(--safe-left));
 }
 
 .content:has(.page-fill) {
