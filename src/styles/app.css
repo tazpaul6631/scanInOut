@@ -455,6 +455,27 @@ body {
   right: calc(1rem + var(--safe-right));
 }
 
+.p-toast-bottom-right,
+.p-toast-bottom-center,
+.p-toast-bottom-left {
+  bottom: calc(20px + 30px + var(--safe-bottom)) !important;
+}
+
+.p-toast-bottom-center {
+  left: calc(5px + var(--safe-left)) !important;
+  right: calc(5px + var(--safe-right)) !important;
+  width: auto !important;
+  transform: none !important;
+}
+
+.p-toast-bottom-left {
+  left: calc(20px + 5px + var(--safe-left)) !important;
+}
+
+.p-toast-bottom-right {
+  right: calc(20px + 5px + var(--safe-right)) !important;
+}
+
 .p-confirmdialog .p-dialog {
   margin-top: var(--safe-top);
 }
@@ -735,7 +756,7 @@ body {
   display: flex;
   position: fixed;
   inset: 0 auto 0 0;
-  width: min(180px, 80vw);
+  width: min(195px, 90vw);
   z-index: 40;
 }
 

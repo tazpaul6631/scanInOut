@@ -13,7 +13,26 @@ import type { ScanDirection, ScanResult } from '@/types'
 
 const { t } = useI18n()
 const toast = useToast()
-const direction = ref<ScanDirection>('in')
+
+/**
+ * Comment 1 dòng trong list để khóa chiều còn lại (tự active, không cần nhấn).
+ * Cả 2 còn → mặc định `in`.
+ */
+const enabledDirections: ScanDirection[] = [
+  'in',
+  // 'out',
+]
+
+const showDirectionIn = enabledDirections.includes('in')
+const showDirectionOut = enabledDirections.includes('out')
+
+function resolveDefaultDirection(): ScanDirection {
+  if (showDirectionIn) return 'in'
+  if (showDirectionOut) return 'out'
+  return 'in'
+}
+
+const direction = ref<ScanDirection>(resolveDefaultDirection())
 const { remember } = useScan(direction)
 const manual = ref<number | null>(null)
 const sessionItems = ref<ScanResult[]>([])
@@ -43,6 +62,8 @@ useBarcodeWedge(async (value) => {
 })
 
 function setDirection(next: ScanDirection) {
+  if (next === 'in' && !showDirectionIn) return
+  if (next === 'out' && !showDirectionOut) return
   direction.value = next
 }
 
@@ -55,21 +76,23 @@ async function saveManual() {
 <template>
   <div class="page-fill gap-3 overflow-hidden" :style="{ paddingBottom: 'var(--safe-bottom)' }">
     <div class="page-fill-panel rounded-2xl border border-line bg-white p-3 shadow-panel">
-      <div class="mb-3 flex shrink-0 flex-wrap items-center gap-2">
-        <span class="text-sm font-semibold text-ink">{{ t('scan.direction') }}</span>
-        <Button :label="t('scan.directionIn')" :severity="direction === 'in' ? 'success' : 'secondary'"
-          :outlined="direction !== 'in'" @click="setDirection('in')" />
-        <Button :label="t('scan.directionOut')" :severity="direction === 'out' ? 'warn' : 'secondary'"
-          :outlined="direction !== 'out'" @click="setDirection('out')" />
+      <div v-if="showDirectionIn || showDirectionOut" class="mb-3 flex shrink-0 flex-wrap items-center gap-2">
+        <!-- Muốn khóa 1 chiều: comment 'in' hoặc 'out' trong enabledDirections (script), nút còn lại tự active -->
+        <Button v-if="showDirectionIn" :label="t('scan.directionIn')"
+          :severity="direction === 'in' ? 'success' : 'secondary'" :outlined="direction !== 'in'"
+          @click="setDirection('in')" />
+        <!-- <Button v-if="showDirectionOut" :label="t('scan.directionOut')"
+          :severity="direction === 'out' ? 'warn' : 'secondary'" :outlined="direction !== 'out'"
+          @click="setDirection('out')" /> -->
       </div>
 
-      <div class="flex shrink-0 flex-wrap gap-2">
-        <FloatLabel class="min-w-32 flex-1">
-          <InputNumber input-id="manual-input" name="manual-input" v-model="manual" class="w-full"
-            :use-grouping="false" :min="0" :max-fraction-digits="0" />
+      <div class="flex shrink-0 items-center gap-2">
+        <FloatLabel class="min-w-0 flex-1">
+          <InputNumber input-id="manual-input" name="manual-input" v-model="manual" :use-grouping="false" :min="0"
+            :max-fraction-digits="0" class="w-full" />
           <label for="manual-input">{{ t('scan.manualPlaceholder') }}</label>
         </FloatLabel>
-        <Button :label="t('common.save')" @click="saveManual" />
+        <Button class="shrink-0" :label="t('common.save')" @click="saveManual" />
       </div>
 
       <div v-if="sessionItems.length" class="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
@@ -82,16 +105,16 @@ async function saveManual() {
               <span class="min-w-0 break-all">
                 <strong>{{ t('scan.result') }}:</strong> {{ item.value }}
               </span>
-              <Tag class="shrink-0 font-semibold"
-                :class="item.direction === 'out'
-                  ? '!border-transparent !bg-amber-500 !text-white'
-                  : '!border-transparent !bg-emerald-600 !text-white'"
+              <Tag class="shrink-0 font-semibold" :class="item.direction === 'out'
+                ? '!border-transparent !bg-amber-500 !text-white'
+                : '!border-transparent !bg-emerald-600 !text-white'"
                 :value="item.direction === 'out' ? t('scan.directionOut') : t('scan.directionIn')" />
             </div>
           </div>
         </div>
       </div>
-      <p v-if="savedCount" class="mb-0 mt-2 shrink-0 text-sm text-muted">{{ t('mobile.savedSession', { n: savedCount }) }}</p>
+      <p v-if="savedCount" class="mb-0 mt-2 shrink-0 text-sm text-muted">{{ t('mobile.savedSession', { n: savedCount })
+      }}</p>
     </div>
   </div>
 </template>
