@@ -42,10 +42,15 @@ export async function addScaleReading(input: LiveWeight): Promise<ScaleReading> 
   return item
 }
 
-export async function listScaleReadings(limit = 100): Promise<ScaleReading[]> {
-  const rows = await query<ScaleRow>(
-    `SELECT * FROM scale_readings ORDER BY created_at DESC LIMIT ?`,
-    [limit],
-  )
+/** Omit `limit` (or pass ≤ 0) to load every reading. */
+export async function listScaleReadings(limit?: number): Promise<ScaleReading[]> {
+  if (limit != null && limit > 0) {
+    const rows = await query<ScaleRow>(
+      `SELECT * FROM scale_readings ORDER BY created_at DESC LIMIT ?`,
+      [limit],
+    )
+    return rows.map(mapReading)
+  }
+  const rows = await query<ScaleRow>(`SELECT * FROM scale_readings ORDER BY created_at DESC`)
   return rows.map(mapReading)
 }

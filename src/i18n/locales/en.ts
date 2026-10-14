@@ -31,8 +31,9 @@ const en = {
     usbGuide: 'USB guide',
     usbGuideTitle: 'Get export files via USB',
     usbGuideSteps:
-      '1. Export CSV or Excel on the device.\n2. Connect the USB cable to the PC.\n3. On the phone, choose File Transfer / MTP mode.\n4. On the PC, open Documents/SRC VIP.\n5. Copy the export file to the computer.',
-    savedSession: 'Total {n} codes scanned',
+      '1. Export CSV or Excel on the device.\n2. Connect the USB cable to the PC.\n3. On the phone, choose File Transfer / MTP mode.\n4. On the PC, open Documents/SRC VIP.\n5. Copy the export file to the computer.\n6. scan-live-log.csv appends on every scan (kept even after delete-all).',
+    savedSession: 'This session: {n}',
+    totalInDb: 'Total in SQLite: {n}',
   },
   footer: {
     copyright: 'System • © 2026 By App Team',
@@ -184,13 +185,16 @@ const en = {
     deleteTitle: 'Delete scan',
     deleteMessage: 'Delete code {value}?',
     deleteAllTitle: 'Delete all history',
-    deleteAllMessage: 'Excel will be exported first, then all scan data in SQLite will be deleted. Continue?',
+    deleteAllMessage:
+      'A full Excel of every scan in SQLite will be exported first, then all scan data will be deleted. Continue?',
     deleted: 'Deleted',
-    deleteAllDone: 'Excel exported and all history deleted',
+    deleteAllDone: 'Full Excel exported and all history deleted',
     deleteError: 'Delete failed',
     code: 'Code',
     type: 'Type',
     dateNow: 'DateNow',
+    totalCount: 'Total {n} scans',
+    filteredOfTotal: '{filtered} shown · {total} in SQLite',
   },
   scale: {
     subtitle: 'USB Serial / Bluetooth LE → parse weight → save SQLite',

@@ -33,8 +33,9 @@ const vi: MessageSchema = {
     usbGuide: 'Hướng dẫn USB',
     usbGuideTitle: 'Lấy file xuất qua USB',
     usbGuideSteps:
-      '1. Xuất CSV hoặc Excel trên máy.\n2. Cắm dây USB vào PC.\n3. Trên điện thoại chọn chế độ File Transfer / MTP.\n4. Trên PC mở thư mục Documents/SRC VIP.\n5. Copy file xuất về máy tính.',
-    savedSession: 'Đã quét tổng {n} mã',
+      '1. Xuất CSV hoặc Excel trên máy.\n2. Cắm dây USB vào PC.\n3. Trên điện thoại chọn chế độ File Transfer / MTP.\n4. Trên PC mở thư mục Documents/SRC VIP.\n5. Copy file xuất về máy tính.\n6. File scan-live-log.csv ghi liên tục mỗi lần quét (không bị xóa khi xóa hết lịch sử).',
+    savedSession: 'Phiên này: {n}',
+    totalInDb: 'Tổng trong SQLite: {n}',
   },
   footer: {
     copyright: 'System • © 2026 By App Team',
@@ -186,13 +187,16 @@ const vi: MessageSchema = {
     deleteTitle: 'Xóa lượt quét',
     deleteMessage: 'Xóa mã {value}?',
     deleteAllTitle: 'Xóa toàn bộ lịch sử',
-    deleteAllMessage: 'Sẽ xuất Excel trước rồi xóa hết dữ liệu quét trong SQLite. Tiếp tục?',
+    deleteAllMessage:
+      'Sẽ xuất Excel đầy đủ toàn bộ lượt quét trong SQLite trước, rồi xóa hết. Tiếp tục?',
     deleted: 'Đã xóa',
-    deleteAllDone: 'Đã xuất Excel và xóa toàn bộ lịch sử',
+    deleteAllDone: 'Đã xuất Excel đầy đủ và xóa toàn bộ lịch sử',
     deleteError: 'Xóa thất bại',
     code: 'Mã',
     type: 'Loại',
     dateNow: 'Ngày giờ',
+    totalCount: 'Tổng {n} lượt quét',
+    filteredOfTotal: 'Đang hiện {filtered} · {total} trong SQLite',
   },
   scale: {
     subtitle: 'USB Serial / Bluetooth LE → parse weight → lưu SQLite',

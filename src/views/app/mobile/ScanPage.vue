@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
 import Button from '@/components/ui/AppButton.vue'
@@ -8,7 +8,7 @@ import FloatLabel from '@/components/ui/AppFloatLabel.vue'
 import Tag from '@/components/ui/AppTag.vue'
 import { useScan } from '@/composables/useScan'
 import { useBarcodeWedge } from '@/composables/useBarcodeWedge'
-import { existsScanLog } from '@/services/repositories/scans'
+import { countScans, existsScanLog } from '@/services/repositories/scans'
 import type { ScanDirection, ScanResult } from '@/types'
 
 const { t } = useI18n()
@@ -36,7 +36,12 @@ const direction = ref<ScanDirection>(resolveDefaultDirection())
 const { remember } = useScan(direction)
 const manual = ref<number | null>(null)
 const sessionItems = ref<ScanResult[]>([])
+const dbTotal = ref(0)
 const savedCount = computed(() => sessionItems.value.length)
+
+async function refreshDbTotal() {
+  dbTotal.value = await countScans()
+}
 
 async function saveCode(value: string, kind: 'manual' | 'barcode', format: string) {
   const code = value.trim()
@@ -55,7 +60,12 @@ async function saveCode(value: string, kind: 'manual' | 'barcode', format: strin
   await remember(item)
   sessionItems.value.unshift(item)
   manual.value = null
+  await refreshDbTotal()
 }
+
+onMounted(() => {
+  void refreshDbTotal()
+})
 
 useBarcodeWedge(async (value) => {
   await saveCode(value, 'barcode', 'WEDGE')
@@ -113,8 +123,10 @@ async function saveManual() {
           </div>
         </div>
       </div>
-      <p v-if="savedCount" class="mb-0 mt-2 shrink-0 text-sm text-muted">{{ t('mobile.savedSession', { n: savedCount })
-      }}</p>
+      <p class="mb-0 mt-2 shrink-0 text-sm text-muted">
+        <span v-if="savedCount">{{ t('mobile.savedSession', { n: savedCount }) }} · </span>
+        {{ t('mobile.totalInDb', { n: dbTotal }) }}
+      </p>
     </div>
   </div>
 </template>

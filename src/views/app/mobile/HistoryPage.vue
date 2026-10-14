@@ -9,7 +9,7 @@ import Dialog from '@/components/ui/AppDialog.vue'
 import InputText from '@/components/ui/AppInputText.vue'
 import Select from '@/components/ui/AppSelect.vue'
 import FloatLabel from '@/components/ui/AppFloatLabel.vue'
-import { deleteAllScanLogs, deleteScanLog, listScanLogs } from '@/services/repositories/scans'
+import { countScans, deleteAllScanLogs, deleteScanLog, listScanLogs } from '@/services/repositories/scans'
 import { exportCsv, exportXlsx } from '@/services/export'
 import dayjs from 'dayjs'
 import { formatDateTime } from '@/utils/format'
@@ -19,6 +19,7 @@ const { t } = useI18n()
 const toast = useToast()
 const confirm = useConfirm()
 const logs = ref<ScanLog[]>([])
+const dbTotal = ref(0)
 const filterCode = ref('')
 const filterType = ref<'all' | ScanDirection>('all')
 const page = ref(0)
@@ -62,6 +63,7 @@ const filteredLogs = computed(() => {
     .reverse()
 })
 
+const hasFilter = computed(() => Boolean(filterCode.value.trim() || filterType.value !== 'all'))
 const total = computed(() => filteredLogs.value.length)
 const pageCount = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
 const pageRows = computed(() => {
@@ -73,6 +75,13 @@ const rangeLabel = computed(() => {
   const low = page.value * pageSize + 1
   const high = Math.min(total.value, low + pageRows.value.length - 1)
   return `${low}->${high} / ${total.value}`
+})
+
+const countLabel = computed(() => {
+  if (hasFilter.value && total.value !== dbTotal.value) {
+    return t('scan.filteredOfTotal', { filtered: total.value, total: dbTotal.value })
+  }
+  return t('scan.totalCount', { n: dbTotal.value })
 })
 
 function rowIndex(index: number) {
@@ -88,7 +97,9 @@ watch(filteredLogs, () => {
 })
 
 async function reload() {
-  logs.value = await listScanLogs(2000)
+  const [rows, count] = await Promise.all([listScanLogs(), countScans()])
+  logs.value = rows
+  dbTotal.value = count
   page.value = 0
 }
 
@@ -105,8 +116,6 @@ function clearFilter() {
   filterType.value = 'all'
   page.value = 0
 }
-
-const hasFilter = computed(() => Boolean(filterCode.value.trim() || filterType.value !== 'all'))
 
 function prevPage() {
   if (page.value > 0) page.value -= 1
@@ -125,26 +134,31 @@ function buildExportRows(source: ScanLog[], asExcelDate: boolean) {
   }))
 }
 
-function exportRows(asExcelDate: boolean) {
-  // Same order as UI: #1 → n (oldest → newest)
-  return buildExportRows(filteredLogs.value, asExcelDate)
+async function loadAllForExport(): Promise<ScanLog[]> {
+  const rows = await listScanLogs()
+  logs.value = rows
+  dbTotal.value = rows.length
+  return rows
 }
 
 async function doExport(kind: 'csv' | 'xlsx') {
-  if (!logs.value.length) {
-    toast.add({ severity: 'warn', summary: t('scan.emptyTitle'), life: 2500, closable: false })
-    return
-  }
   exporting.value = true
   try {
+    const all = await loadAllForExport()
+    if (!all.length) {
+      toast.add({ severity: 'warn', summary: t('scan.emptyTitle'), life: 2500, closable: false })
+      return
+    }
     const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
     const filename = kind === 'csv' ? `scan-logs-${stamp}.csv` : `scan-logs-${stamp}.xlsx`
-    if (kind === 'csv') await exportCsv(filename, exportColumns.value, exportRows(false))
-    else await exportXlsx(filename, exportColumns.value, exportRows(true))
+    // Export full DB (oldest → newest), ignore UI filter so nothing is dropped.
+    const rows = buildExportRows([...all].reverse(), kind === 'xlsx')
+    if (kind === 'csv') await exportCsv(filename, exportColumns.value, rows)
+    else await exportXlsx(filename, exportColumns.value, rows)
     toast.add({
       severity: 'success',
       summary: t('sync.exported', { file: filename }),
-      detail: t('mobile.usbHint'),
+      detail: t('scan.totalCount', { n: all.length }),
       life: 5000,
       closable: false,
     })
@@ -222,18 +236,23 @@ function deleteAll() {
     accept: async () => {
       exporting.value = true
       try {
+        const all = await loadAllForExport()
+        if (!all.length) {
+          toast.add({ severity: 'warn', summary: t('scan.emptyTitle'), life: 2500, closable: false })
+          return
+        }
         const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
         const filename = `scan-logs-backup-${stamp}.xlsx`
         await exportXlsx(
           filename,
           exportColumns.value,
-          buildExportRows([...logs.value].reverse(), true),
+          buildExportRows([...all].reverse(), true),
         )
         await deleteAllScanLogs()
         toast.add({
           severity: 'success',
           summary: t('scan.deleteAllDone'),
-          detail: t('sync.exported', { file: filename }),
+          detail: `${t('sync.exported', { file: filename })} · ${t('scan.totalCount', { n: all.length })}`,
           life: 5000,
           closable: false,
         })
@@ -280,6 +299,7 @@ function deleteAll() {
           :options="typeOptions" option-label="label" option-value="value" class="w-full" />
         <label for="history-filter-type">{{ t('scan.filterType') }}</label>
       </FloatLabel>
+      <span class="shrink-0 text-sm font-semibold text-ink">{{ countLabel }}</span>
     </div>
 
     <div class="page-fill-panel rounded-2xl border border-line bg-white p-2 shadow-panel">

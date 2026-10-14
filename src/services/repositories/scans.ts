@@ -1,4 +1,5 @@
 import { query, run } from '@/storage/database'
+import { appendScanLiveLog } from '@/services/scan-live-log'
 import type { ScanDirection, ScanKind, ScanLog } from '@/types'
 import { createId, now } from '@/utils/id'
 
@@ -40,14 +41,20 @@ export async function addScanLog(input: {
     `INSERT INTO scan_logs (id, kind, value, format, direction, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
     [item.id, item.kind, item.value, item.format, item.direction, item.createdAt],
   )
+  void appendScanLiveLog(item)
   return item
 }
 
-export async function listScanLogs(limit = 100): Promise<ScanLog[]> {
-  const rows = await query<ScanRow>(
-    `SELECT * FROM scan_logs ORDER BY created_at DESC LIMIT ?`,
-    [limit],
-  )
+/** Omit `limit` (or pass ≤ 0) to load every scan row. */
+export async function listScanLogs(limit?: number): Promise<ScanLog[]> {
+  if (limit != null && limit > 0) {
+    const rows = await query<ScanRow>(
+      `SELECT * FROM scan_logs ORDER BY created_at DESC LIMIT ?`,
+      [limit],
+    )
+    return rows.map(mapScan)
+  }
+  const rows = await query<ScanRow>(`SELECT * FROM scan_logs ORDER BY created_at DESC`)
   return rows.map(mapScan)
 }
 

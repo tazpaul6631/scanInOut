@@ -17,8 +17,8 @@ export async function createBackup(): Promise<string> {
     createdAt: now(),
     products: await listProducts(),
     media: await listMedia(),
-    scans: await listScanLogs(1000),
-    scaleReadings: await listScaleReadings(1000),
+    scans: await listScanLogs(),
+    scaleReadings: await listScaleReadings(),
     outbox: await listOutbox(),
     settings: await query('SELECT key, value FROM settings'),
   }
